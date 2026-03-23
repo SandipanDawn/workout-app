@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitness System Premium</title>
+<style>
+body {
+  font-family: -apple-system;
+  margin:0;
+  background: linear-gradient(rgba(15,23,42,0.9), rgba(15,23,42,0.95)),
+              url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438');
+  background-size: cover;
+  color:white;
+}
+.container { padding:16px; }
+h2,h3 { text-align:center; }
+
+button {
+  width:100%; padding:14px; margin:8px 0;
+  border:none; border-radius:14px;
+  background:#3b82f6; color:white; font-size:16px;
+}
+
+.card {
+  background:rgba(30,41,59,0.9);
+  padding:14px; margin:12px 0;
+  border-radius:18px;
+}
+
+.set {
+  padding:12px;
+  margin:6px 0;
+  border-radius:12px;
+  background:#334155;
+  text-align:center;
+  transition:0.3s;
+}
+
+.set.active {
+  background:#22c55e;
+  transform:scale(1.05);
+}
+
+.progress {
+  height:16px;
+  background:#334155;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.progress-bar {
+  height:100%;
+  background:#22c55e;
+  width:0%;
+  transition:0.4s;
+}
+
+.hidden { display:none; }
+
+.footer {
+  text-align:center;
+  margin-top:20px;
+  font-size:12px;
+  color:#cbd5f5;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h2>🔥💪 Fitness System Premium 🏋️‍♂️</h2>
+
+<div id="home">
+<button onclick="goWorkout()">💪 Start Workout</button>
+<button onclick="goProgress()">📊 Progress Dashboard</button>
+</div>
+
+<div id="workout" class="hidden">
+<button onclick="openDay('push1')">🔥 Push Day 1</button>
+<button onclick="openDay('pull1')">🦾 Pull Day 1</button>
+<button onclick="openDay('legs')">🦵 Legs Day</button>
+<button onclick="openDay('push2')">🔥 Push Day 2</button>
+<button onclick="openDay('pull2')">🦾 Pull Day 2</button>
+<button onclick="openDay('core')">🧠 Core Day</button>
+<button onclick="goHome()">⬅ Back</button>
+</div>
+
+<div id="day" class="hidden">
+<h3 id="title"></h3>
+<div class="progress"><div id="bar" class="progress-bar"></div></div>
+<div id="percent" style="text-align:center;margin:10px 0;">0%</div>
+<div id="list"></div>
+<button onclick="complete()">✅ Complete Workout</button>
+<button onclick="resetDay()">🔄 Reset Day</button>
+<button onclick="goWorkout()">⬅ Back</button>
+</div>
+
+<div id="progress" class="hidden">
+<h3>📊 Progress Dashboard</h3>
+
+<div class="card">🔥 Streak: <span id="streak">0</span></div>
+<div class="card">📅 Total Days: <span id="total">0</span></div>
+<div class="card">⚠️ Missed Days: <span id="missed">0</span></div>
+<div class="card">🔥 Push: <span id="push">0</span></div>
+<div class="card">🦾 Pull: <span id="pull">0</span></div>
+<div class="card">🦵 Legs: <span id="legsCount">0</span></div>
+
+<div class="card">
+📈 Weekly Activity
+<canvas id="chart" height="150"></canvas>
+</div>
+
+<button onclick="goHome()">⬅ Back</button>
+</div>
+
+<div class="footer">Made by Sandipan & Tesla 🚀</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const workouts = {
+push1:["Machine Chest Press","Incline Dumbbell Press","Pec Deck Fly","Shoulder Press","Lateral Raise","Triceps Pushdown","Cable Kickback"],
+pull1:["Lat Pulldown","Seated Row","Chest Supported Row","Face Pull","Dumbbell Curl","Hammer Curl","Reverse Fly"],
+legs:["Leg Press","Hack Squat","Leg Extension","Leg Curl","Calf Raise","Glute Bridge","Bird Dog"],
+push2:["Incline Machine Press","Cable Fly","Flat DB Press","Lateral Raise","Dips","Pushdown","Overhead Triceps"],
+pull2:["Close Grip Pulldown","Single Arm Row","Machine Row","Face Pull","Preacher Curl","Cable Curl","Shrugs"],
+core:["Plank","Dead Bug","Woodchopper","Hanging Knee Raise","Side Plank"]
+};
+
+let current="";
+let chart;
+
+function goHome(){ hide(); document.getElementById("home").classList.remove("hidden"); }
+function goWorkout(){ hide(); document.getElementById("workout").classList.remove("hidden"); }
+function goProgress(){ hide(); document.getElementById("progress").classList.remove("hidden"); updateStats(); drawChart(); }
+
+function hide(){
+["home","workout","day","progress"].forEach(id=>{
+document.getElementById(id).classList.add("hidden");
+});
+}
+
+function openDay(day){
+current=day;
+hide();
+document.getElementById("day").classList.remove("hidden");
+document.getElementById("title").innerText=day.toUpperCase();
+render();
+updateBar();
+}
+
+function render(){
+let html="";
+workouts[current].forEach((ex,i)=>{
+html+=`<div class="card"><b>${ex}</b>`;
+for(let s=1;s<=3;s++){
+let key=current+i+s;
+let active=localStorage.getItem(key)==="true";
+html+=`<div class="set ${active?'active':''}" onclick="toggle('${key}',this)">Set ${s}</div>`;
+}
+html+="</div>";
+});
+document.getElementById("list").innerHTML=html;
+}
+
+function toggle(key,el){
+let val=localStorage.getItem(key)==="true";
+localStorage.setItem(key,!val);
+el.classList.toggle("active");
+updateBar();
+}
+
+function updateBar(){
+let total=workouts[current].length*3;
+let done=0;
+for(let i=0;i<workouts[current].length;i++){
+for(let s=1;s<=3;s++){
+if(localStorage.getItem(current+i+s)==="true") done++;
+}
+}
+let percent=Math.floor((done/total)*100);
+document.getElementById("bar").style.width=percent+"%";
+document.getElementById("percent").innerText=percent+"% Completed";
+}
+
+function resetDay(){
+for(let i=0;i<workouts[current].length;i++){
+for(let s=1;s<=3;s++){
+localStorage.removeItem(current+i+s);
+}
+}
+render(); updateBar();
+}
+
+function complete(){
+let today=new Date().toDateString();
+let hist=JSON.parse(localStorage.getItem("hist")||"{}");
+hist[today]=current;
+localStorage.setItem("hist",JSON.stringify(hist));
+alert("Workout Logged ✅");
+}
+
+function updateStats(){
+let hist=JSON.parse(localStorage.getItem("hist")||"{}");
+let dates=Object.keys(hist).sort();
+let vals=Object.values(hist);
+
+document.getElementById("total").innerText=vals.length;
+document.getElementById("push").innerText=vals.filter(v=>v.includes("push")).length;
+document.getElementById("pull").innerText=vals.filter(v=>v.includes("pull")).length;
+document.getElementById("legsCount").innerText=vals.filter(v=>v.includes("legs")).length;
+
+let streak=1, missed=0;
+for(let i=dates.length-1;i>0;i--){
+let d1=new Date(dates[i]);
+let d2=new Date(dates[i-1]);
+let diff=(d1-d2)/(1000*60*60*24);
+if(diff===1) streak++;
+else missed += diff-1;
+}
+document.getElementById("streak").innerText=dates.length?streak:0;
+document.getElementById("missed").innerText=missed;
+}
+
+function drawChart(){
+let ctx=document.getElementById("chart");
+let hist=JSON.parse(localStorage.getItem("hist")||"{}");
+let dates=Object.keys(hist);
+let data=dates.map((_,i)=>i+1);
+
+if(chart) chart.destroy();
+
+chart=new Chart(ctx,{
+type:'line',
+data:{
+labels:dates,
+datasets:[{
+label:"Workout Days",
+data:data,
+tension:0.3
+}]
+}
+});
+}
+</script>
+
+</body>
+</html>
