@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitness Pro</title>
+
+<style>
+body{
+margin:0;
+font-family:-apple-system, BlinkMacSystemFont;
+background: linear-gradient(135deg,#0f172a,#1e293b);
+color:white;
+}
+.container{padding:18px;max-width:500px;margin:auto;}
+h1{text-align:center;font-size:24px;margin-bottom:20px;}
+.nav-btn{
+width:100%;padding:16px;margin:8px 0;border-radius:14px;border:none;
+background:linear-gradient(135deg,#3b82f6,#6366f1);
+color:white;font-size:16px;font-weight:600;
+}
+.card{
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(10px);
+padding:16px;border-radius:18px;margin:12px 0;
+box-shadow:0 4px 20px rgba(0,0,0,0.3);
+}
+.set{
+padding:10px;margin:5px;border-radius:10px;
+background:#334155;display:inline-block;cursor:pointer;
+}
+.set.active{background:#22c55e;}
+.machine{padding:12px;margin:6px 0;border-radius:12px;background:#334155;text-align:center;cursor:pointer;}
+.machine.active{background:#22c55e;}
+.stat{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.1);}
+.hidden{display:none}
+
+.pro-slider{
+-webkit-appearance:none;
+width:100%;
+height:10px;
+border-radius:10px;
+background:linear-gradient(90deg,#3b82f6,#6366f1);
+outline:none;
+margin-top:10px;
+}
+
+.pro-slider::-webkit-slider-thumb{
+-webkit-appearance:none;
+height:22px;
+width:22px;
+border-radius:50%;
+background:white;
+cursor:pointer;
+margin-top:-6px;
+box-shadow:0 0 10px rgba(59,130,246,0.8);
+}
+
+.time-display{
+text-align:center;
+margin-top:15px;
+font-size:28px;
+font-weight:700;
+}
+
+.unit{
+font-size:16px;
+opacity:0.7;
+margin-left:4px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<h1>🔥 Fitness Pro</h1>
+
+<div id="home">
+<button class="nav-btn" onclick="show('workout')">💪 Workout</button>
+<button class="nav-btn" onclick="show('cardio')">🏃 Cardio</button>
+<button class="nav-btn" onclick="showProgressData()">📊 Progress</button>
+</div>
+
+<div id="workout" class="hidden">
+
+<!-- DAY 1 -->
+<div class="card" onclick="openDay('push1')">🔥 Push Day 1</div>
+<div class="card" onclick="openDay('pull1')">🦾 Pull Day 1</div>
+<div class="card" onclick="openDay('legs1')">🦵 Leg Day 1</div>
+<div class="card" onclick="openDay('core1')">🧠 Core Day 1</div>
+
+<!-- DAY 2 -->
+<div class="card" onclick="openDay('push2')">🔥 Push Day 2</div>
+<div class="card" onclick="openDay('pull2')">🦾 Pull Day 2</div>
+<div class="card" onclick="openDay('legs2')">🦵 Leg Day 2</div>
+<div class="card" onclick="openDay('core2')">🧠 Core Day 2</div>
+
+<button class="nav-btn" onclick="show('home')">⬅ Back</button>
+
+</div>
+
+<div id="day" class="hidden">
+<h2 id="title"></h2>
+<div id="list"></div>
+<button class="nav-btn" onclick="complete()">✅ Complete</button>
+<button class="nav-btn" onclick="resetDay()">🔄 Reset</button>
+<button class="nav-btn" onclick="show('workout')">⬅ Back</button>
+</div>
+
+<div id="cardio" class="hidden">
+<div class="card">
+<div class="machine" onclick="selectMachine(this,'Treadmill')">🏃 Treadmill</div>
+<div class="machine" onclick="selectMachine(this,'Cycling')">🚴 Cycling</div>
+<div class="machine" onclick="selectMachine(this,'Stepper')">🪜 Stepper</div>
+</div>
+
+<div class="card">
+  <input type="range" min="10" max="60" step="1" value="20" id="slider" class="pro-slider" oninput="updateTime()">
+  
+  <div class="time-display">
+    <span id="timeValue">20</span>
+    <span class="unit">min</span>
+  </div>
+</div>
+
+<button class="nav-btn" onclick="saveCardio()">Save</button>
+<button class="nav-btn" onclick="show('home')">⬅ Back</button>
+</div>
+
+<div id="progress" class="hidden">
+<div class="card">
+<div class="stat">🔥 Total Days <span id="total">0</span></div>
+<div class="stat">❌ Missed Days <span id="missed">0</span></div>
+<div class="stat">💪 Push <span id="push">0</span></div>
+<div class="stat">🦾 Pull <span id="pull">0</span></div>
+<div class="stat">🦵 Legs <span id="legs">0</span></div>
+<div class="stat">🧠 Core <span id="core">0</span></div>
+<div class="stat">🏃 Cardio (min) <span id="cardioMin">0</span></div>
+</div>
+<canvas id="chart" height="200"></canvas>
+<button class="nav-btn" onclick="show('home')">⬅ Back</button>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const workouts={
+push1:["🏋️ Machine Chest Press","🏋️ Incline Dumbbell Press","🦋 Pec Deck Chest Fly","🏋️ Seated Shoulder Press","💪 Lateral Raises","🔗 Triceps Rope Pushdown"],
+pull1:["⬇️ Lat Pulldown","🚣 Seated Cable Row","🏋️ Chest Supported Row","🎯 Face Pull","💪 Dumbbell Bicep Curl","💪 Hammer Curl"],
+legs1:["🏋️ Leg Press","🏋️ Hack Squat Machine","🦵 Leg Extension","🦵 Lying Leg Curl","🦶 Standing Calf Raise"],
+core1:["🪵 Plank","🐞 Dead Bug","⬆️ Hanging Knee Raise","🐕 Bird Dog"],
+push2:["🏋️ Incline Machine Press","🦋 Cable Chest Fly","🏋️ Flat Dumbbell Press","💪 Lateral Raises","🔗 Overhead Triceps Extension","🔗 Cable Pushdown"],
+pull2:["⬇️ Close Grip Lat Pulldown","🚣 Single Arm Cable Row","🏋️ Machine Row","💪 Preacher Curl","💪 Cable Curl","🏋️ Incline Dumbbell Curl"],
+legs2:["🍑 Glute Bridge","🚶 Walking Lunges","🦵 Seated Leg Curl","🦶 Seated Calf Raise","🦵 Leg Extension"],
+core2:["🪵 Side Plank","🔄 Russian Twist","🪓 Cable Woodchopper","🐞 Dead Bug"]
+};
+
+let cur="",selectedMachine="",chart;
+
+function show(id){
+["home","workout","day","cardio","progress"].forEach(s=>{
+document.getElementById(s).classList.add("hidden");
+});
+document.getElementById(id).classList.remove("hidden");
+}
+
+function openDay(d){
+cur=d;
+show("day");
+title.innerText=d.toUpperCase();
+render();
+}
+
+function render(){
+let html="";
+workouts[cur].forEach((ex,i)=>{
+html+=`<div class="card"><b>${ex}</b>`;
+for(let s=1;s<=3;s++){
+let k=cur+i+s;
+let active=localStorage[k]=="1";
+html+=`<div class="set ${active?"active":""}" onclick="toggle('${k}',this)">Set ${s}</div>`;
+}
+html+="</div>";
+});
+list.innerHTML=html;
+}
+
+function toggle(k,e){
+localStorage[k]=localStorage[k]=="1"?"0":"1";
+e.classList.toggle("active");
+}
+
+function resetDay(){
+for(let i=0;i<workouts[cur].length;i++){
+for(let s=1;s<=3;s++){
+delete localStorage[cur+i+s];
+}}
+render();
+}
+
+function complete(){
+let today=new Date().toDateString();
+let h=JSON.parse(localStorage.hist||"{}");
+let count=0;
+for(let i=0;i<workouts[cur].length;i++){
+let done=true;
+for(let s=1;s<=3;s++){
+if(localStorage[cur+i+s]!="1") done=false;
+}
+if(done) count++;
+}
+h[today]={day:cur,exercises:count};
+localStorage.hist=JSON.stringify(h);
+alert("Saved");
+}
+
+function selectMachine(el,m){
+selectedMachine=m;
+document.querySelectorAll(".machine").forEach(b=>b.classList.remove("active"));
+el.classList.add("active");
+}
+
+function updateTime(){
+let val = slider.value;
+document.getElementById("timeValue").innerText = val;
+
+// optional dynamic fill
+let percent = (val - 10) / (60 - 10) * 100;
+slider.style.background = `linear-gradient(90deg,#3b82f6 ${percent}%, #1e293b ${percent}%)`;
+}
+
+function saveCardio(){
+let log=JSON.parse(localStorage.cardio||"[]");
+log.push({m:selectedMachine,t:parseInt(slider.value),date:new Date().toDateString()});
+localStorage.cardio=JSON.stringify(log);
+alert("Saved");
+}
+
+function showProgressData(){
+show("progress");
+let h=JSON.parse(localStorage.hist||"{}");
+let dates=Object.keys(h);
+total.innerText=dates.length;
+
+let vals=Object.values(h).map(v=>v.day||"");
+push.innerText=vals.filter(v=>v.includes("push")).length;
+pull.innerText=vals.filter(v=>v.includes("pull")).length;
+legs.innerText=vals.filter(v=>v.includes("legs")).length;
+core.innerText=vals.filter(v=>v.includes("core")).length;
+
+let cardio=JSON.parse(localStorage.cardio||"[]");
+cardioMin.innerText=cardio.reduce((a,b)=>a+b.t,0);
+
+drawChart(dates,h);
+}
+
+function drawChart(labels,h){
+let workoutData=labels.map(d=>h[d]?.exercises || 0);
+let cardioLog=JSON.parse(localStorage.cardio||"[]");
+let cardioData=labels.map(d=>{
+return cardioLog.filter(c=>c.date===d).reduce((a,b)=>a+b.t,0);
+});
+if(chart) chart.destroy();
+let ctx=document.getElementById("chart").getContext("2d");
+chart=new Chart(ctx,{
+type:'bar',
+data:{
+labels:labels,
+datasets:[
+{label:"Workout",data:workoutData},
+{label:"Cardio",data:cardioData}
+]
+},
+options:{responsive:true}
+});
+}
+</script>
+
+</body>
+</html>
