@@ -125,16 +125,20 @@ text-align:center;margin-top:15px;font-size:28px;font-weight:700;
 <div class="stat">🏃 Cardio (min) <span id="cardioMin">0</span></div>
 </div>
 
-<div style="display:flex; gap:10px;">
-<div style="flex:1;">
-<h4 style="text-align:center;">💪 Workout</h4>
-<canvas id="workoutChart"></canvas>
-</div>
+<div style="margin-top:10px;">
 
-<div style="flex:1;">
-<h4 style="text-align:center;">🏃 Cardio</h4>
-<canvas id="cardioChart"></canvas>
-</div>
+  <!-- WORKOUT -->
+  <div class="card">
+    <h4 style="text-align:center;">💪 Workout</h4>
+    <canvas id="workoutChart" height="180"></canvas>
+  </div>
+
+  <!-- CARDIO -->
+  <div class="card">
+    <h4 style="text-align:center;">🏃 Cardio</h4>
+    <canvas id="cardioChart" height="180"></canvas>
+  </div>
+
 </div>
 
 <button class="nav-btn" onclick="show('home')">⬅ Back</button>
