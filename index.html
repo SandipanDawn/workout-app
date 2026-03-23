@@ -192,10 +192,46 @@ e.classList.toggle("active");
 }
 
 function complete(){
-let h=JSON.parse(localStorage.hist||"{}");
-h[new Date().toDateString()]={day:cur,exercises:3};
-localStorage.hist=JSON.stringify(h);
-alert("Saved");
+
+let today = new Date().toDateString();
+let h = JSON.parse(localStorage.hist || "{}");
+
+let count = 0;
+let totalSetsDone = 0;
+
+/* CHECK EXERCISES */
+for(let i=0;i<workouts[cur].length;i++){
+
+let done = true;
+
+for(let s=1;s<=3;s++){
+let key = cur+i+s;
+
+if(localStorage[key] == "1"){
+totalSetsDone++;   // track any activity
+} else {
+done = false;
+}
+}
+
+if(done) count++;
+}
+
+/* 🚫 BLOCK IF NOTHING DONE */
+if(totalSetsDone === 0){
+alert("⚠️ Please complete at least one set before saving!");
+return;
+}
+
+/* SAVE */
+h[today] = {
+day: cur,
+exercises: count
+};
+
+localStorage.hist = JSON.stringify(h);
+
+alert("Workout Saved ✅");
 }
 
 function resetDay(){localStorage.clear();location.reload();}
